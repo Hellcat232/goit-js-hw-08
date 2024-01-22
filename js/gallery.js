@@ -64,9 +64,11 @@ const images = [
   },
 ];
 const gallery = document.querySelector(".gallery");
+
 function createMarkup() {
-  const markup = images.map(({ preview, original, description }) => {
-    return `<li class="gallery-item">
+  const markup = images
+    .map(({ preview, original, description }) => {
+      return `<li class="gallery-item">
   <a class="gallery-link" href="${original}">
     <img
       class="gallery-image"
@@ -76,9 +78,47 @@ function createMarkup() {
     />
   </a>
 </li>`;
-  });
+    })
+    .join("");
   gallery.innerHTML = markup;
 }
-
 createMarkup();
-console.log(createMarkup);
+
+gallery.addEventListener("click", (event) => {
+  event.preventDefault();
+  if (event.target === event.currentTarget) return;
+  const liElem = event.target;
+  const dataSource = liElem.dataset.source;
+  const image = images.find((el) => el.original === dataSource);
+
+  showLargeImg(image);
+});
+
+function showLargeImg({ original, description }) {
+  const instance = basicLightbox.create(
+    `
+    <img
+      class="gallery-image"
+      src="${original}"
+      data-source="${original}"
+      alt="${description}"
+    />
+`,
+    {
+      onShow: (instance) => {
+        document.addEventListener("keydown", onModalClose);
+      },
+      onClose: (instance) => {
+        document.removeEventListener("keydown", onModalClose);
+      },
+    }
+  );
+
+  instance.show();
+
+  function onModalClose(event) {
+    if (event.code === "Escape") {
+      instance.close();
+    }
+  }
+}
